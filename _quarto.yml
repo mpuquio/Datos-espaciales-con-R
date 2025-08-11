@@ -1,0 +1,35 @@
+project:
+  type: website
+  output-dir: docs
+
+execute:
+    warning: false
+
+
+website:
+  title: "ANALISIS DE DATOS ESPACIALES CON R"
+        
+  sidebar:
+    style: "docked"
+    search: false
+    contents:
+      - section: "DATOS VECTORIALES"
+        contents:
+          - 1_Libreria_SF.qmd
+          - 2_Operaciones_SF.qmd
+          - 3_Creacion_objetos_SF.qmd
+  back-to-top-navigation: true
+  page-footer: 
+    center: "© 2025 Miguel Puquio" 
+    background: light
+    
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true
+
+editor: visual
+

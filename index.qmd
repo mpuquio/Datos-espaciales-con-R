@@ -1,0 +1,5 @@
+---
+title: "Introducción"
+---
+
+Esta página contiene un resumen de las principales herramientas de R para el manejo de datos espaciales.

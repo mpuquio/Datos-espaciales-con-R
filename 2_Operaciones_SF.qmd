@@ -1,0 +1,326 @@
+---
+title: "Operaciones SF"
+---
+
+Importacion de librerias
+
+```{r, message=FALSE}
+library(sf)
+library(tidyverse) 
+```
+
+Importación de los archivos vectoriales en formato shapefile
+
+```{r}
+poligonos <- read_sf('data/Poligonos.shp')
+lineas <- read_sf('data/Lineas.shp')
+puntos <- read_sf('data/Puntos.shp')
+```
+
+## 1. Extracción de información
+
+### a. Sistema de Coordenadas de Referencia (CRS)
+
+[**ST_CRS**]{style="color:green;"}
+
+Devuelve un objeto tipo *CRS* con información del sistema de coordendas del objeto *SF.*
+
+```{r}
+st_crs(poligonos)
+```
+
+```{r}
+class(st_crs(poligonos))
+```
+
+Nombre del Sistema de Referencia de Coordendas.
+
+```{r}
+st_crs(poligonos)$input
+```
+
+Código EPSG.
+
+```{r}
+st_crs(poligonos)$epsg
+```
+
+Unidad del sistema de coordenadas.
+
+```{r}
+st_crs(poligonos)$units_gdal
+```
+
+Informacion de la proyección.
+
+```{r}
+st_crs(poligonos)$proj4string
+```
+
+Informacion en formato WKT (*Well-Known Text*).
+
+```{r}
+st_crs(poligonos)$wkt
+```
+
+### b. Coordenadas
+
+[**ST_COORDINATES**]{style="color:green;"}
+
+Devuelve una matriz con las coordendas (X e Y) de cada uno de los vértices de las geometrías.
+
+```{r}
+st_coordinates(poligonos)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos) +
+  geom_point(data = st_coordinates(poligonos),
+             aes(x = X, y = Y),
+             size = 2,
+             color = "red") +
+  theme(axis.title = element_blank())
+```
+
+## 2. Operaciones con geometrías
+
+### a. Centroide
+
+[**ST_CENTROID**]{style="color:green;"}
+
+Genera puntos que representan el centro geométrico.
+
+```{r, warning=FALSE}
+st_coordinates(st_centroid(poligonos))
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos) +
+  geom_point(data = st_coordinates(st_centroid(poligonos)),
+             aes(x = X, y = Y),
+             size = 2,
+             color = "red") +
+  theme(axis.title = element_blank())
+```
+
+### b. Buffer
+
+[**ST_BUFFER**]{style="color:green;"}
+
+Genera un polígono que envuelve a la geometría seleccionada a una distancia (*dist*) determinada.
+
+```{r}
+poligonos_buffer <- st_buffer(poligonos, dist = 200)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos) +
+  geom_sf(data = poligonos_buffer, color = "red", alpha = 0.5, lwd = 1) +
+  theme(axis.title = element_blank())
+```
+
+### c. Contorno
+
+[**ST_BOUNDARY**]{style="color:green;"}
+
+Genera una línea cerrada que contiene a la geometria seleccionada.
+
+```{r}
+st_boundary(poligonos)$geometry
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos, aes(fill = Objeto)) +
+  geom_sf(data = st_boundary(poligonos), color = "red", lwd = 1) +
+  theme(axis.title = element_blank())
+```
+
+### d. Intersección
+
+[**ST_INTERSECTION**]{style="color:green;"}
+
+Se obtiene un nuevo poligono resultado de la intersección de dos poligonos.
+
+```{r}
+st_intersection(poligonos[2,], poligonos[3,])
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos[2,]) +
+  geom_sf(data = poligonos[3,]) +
+  geom_sf(data = st_intersection(poligonos[2,], poligonos[3,]), color = "red", lwd = 1) +
+  theme(axis.title = element_blank())
+```
+
+### e. Diferencia
+
+[**ST_DIFFERENCE**]{style="color:green;"}
+
+Se obtiene un nuevo poligono resultado de la diferencia del primero menos el segundo.
+
+```{r}
+st_difference(poligonos[2,], poligonos[3,])
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos[2,]) +
+  geom_sf(data = poligonos[3,]) +
+  geom_sf(data = st_difference(poligonos[2,], poligonos[3,]), color = "red", lwd = 1) +
+  geom_sf(data = st_difference(poligonos[3,], poligonos[2,]), color = "blue", lwd = 1) +
+  theme(axis.title = element_blank())
+```
+
+### f. Unión
+
+[**ST_UNION**]{style="color:green;"}
+
+Se obtiene un nuevo poligono resultado de la unión del primero y el segundo.
+
+```{r}
+st_union(poligonos[2,], poligonos[3,])
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos[2,]) +
+  geom_sf(data = poligonos[3,]) +
+  geom_sf(data = st_union(poligonos[2,], poligonos[3,]), color = "red", alpha = 0.5, lwd = 1) +
+  theme(axis.title = element_blank())
+```
+
+### g. Convex Hull
+
+[**ST_CONVEX_HULL**]{style="color:green;"}
+
+Se obtiene un polígono que envuelve a un conjunto de geometrías (puntos, lineas o poligonos)
+
+```{r}
+st_convex_hull(st_union(puntos))
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = puntos, size = 3) +
+  geom_sf(data = st_convex_hull(st_union(puntos)), color = "red", alpha =0.5) +
+  theme(axis.title = element_blank())
+```
+
+### h. Grilla
+
+[**ST_MAKE_GRID**]{style="color:green;"}
+
+Se obtiene una grilla alrededor de la geometria.
+
+```{r}
+grilla_cuadrada <- st_make_grid(poligonos[1,], cellsize = 500, what = "polygons")
+grilla_centroide <- st_make_grid(poligonos[1,], cellsize = 500, what = "centers")
+```
+
+```{r}
+class(grilla_cuadrada)
+class(grilla_centroide)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos[1,]) +
+  geom_sf(data = grilla_cuadrada, color = "red", alpha = 0.5) +
+  geom_sf(data = grilla_centroide, color = "blue", alpha = 0.5) +
+  theme(axis.title = element_blank())
+```
+
+Para obtener la grilla alrededor de solamente el poligono, se puede usar la funcion de interseccion.
+
+```{r}
+ggplot() +
+  geom_sf(data = poligonos[1,]) +
+  geom_sf(data = st_intersection(poligonos[1,], grilla_cuadrada), color = "red", alpha = 0.5) +
+  geom_sf(data = st_intersection(poligonos[1,], grilla_centroide), color = "blue", alpha = 0.5) +
+  theme(axis.title = element_blank())
+```
+
+## 3. Medición de geometrías
+
+Las geometrias importadas cuentan con dimensiones espaciales que pueden ser medidas.
+
+```{r}
+st_set_geometry(poligonos, NULL)
+```
+
+```{r}
+st_set_geometry(lineas, NULL)
+```
+
+### a. Área
+
+[**ST_AREA**]{style="color:green;"}
+
+Devuelve el valor numérico (m²) del área de los polígonos.
+
+```{r}
+st_area(poligonos)
+```
+
+### b. Perímetro
+
+[**ST_PERIMETER**]{style="color:green;"}
+
+Devuelve el valor numérico (m) del perimetro de los poligonos.
+
+```{r}
+st_perimeter(poligonos)
+```
+
+### c. Longitud
+
+[**ST_LENGTH**]{style="color:green;"}
+
+Devuelve el valor numérico (m) de la longitud de las lineas.
+
+```{r}
+st_length(lineas)
+```
+
+### d. Distancia
+
+[**ST_LENGTH**]{style="color:green;"}
+
+Devuelve el valor numérico (m) de la distancia entre dos objetos.
+
+```{r}
+# Distancia entre "Punto 1" y "Punto 2"
+st_distance(puntos[1,], puntos[2,], by_element = TRUE)
+```
+
+```{r}
+# Distancia entre "Punto 1" y "Linea 1"
+st_distance(puntos[1,], lineas[1,], by_element = TRUE)
+```
+
+```{r}
+# Distancia entre todos los elementos de "Puntos" y "Lineas"
+st_distance(puntos, lineas)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = puntos, color = "red") + 
+  geom_sf(data = lineas, color = "blue") +
+  geom_text(data = st_set_geometry(puntos, NULL),
+            aes(x = c(st_coordinates(puntos)[,1]),
+                y = c(st_coordinates(puntos)[,2])+250,
+                label = Objeto),
+            size = 2.5) +
+  geom_text(data = st_set_geometry(lineas, NULL),
+            aes(x = c(st_coordinates(st_centroid(lineas))[,1])-600,
+                y = c(st_coordinates(st_centroid(lineas))[,2]),
+                label = Objeto),
+            size = 2.5) +
+  theme(axis.title = element_blank())
+```

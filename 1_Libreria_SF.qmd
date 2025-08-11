@@ -1,0 +1,143 @@
+---
+title: "Libreria SF"
+---
+
+## 1. Importación
+
+Importacion de librerías
+
+```{r, message=FALSE}
+library(sf)
+library(tidyverse) 
+```
+
+Importación de los archivos vectoriales en formato shapefile
+
+```{r}
+poligonos <- read_sf('data/Poligonos.shp')
+lineas <- read_sf('data/Lineas.shp')
+puntos <- read_sf('data/Puntos.shp')
+```
+
+Los datos vectoriales importados son del tipo SF
+
+```{r}
+class(poligonos)
+class(lineas)
+class(puntos)
+```
+
+### a. Polígono
+
+```{r}
+poligonos
+```
+
+```{r}
+plot(poligonos["Objeto"])
+```
+
+### b. Línea
+
+```{r}
+lineas
+```
+
+```{r}
+plot(lineas["Objeto"], lwd = 3)
+```
+
+### c. Punto
+
+```{r}
+puntos
+```
+
+```{r}
+plot(puntos["Objeto"], pch = 19)
+```
+
+## 2. Elementos
+
+Un objeto SF esta comformado por los siguientes elementos:
+
+-   Objeto Dataframe
+-   Objeto SFC
+    -   Objeto SFG
+    -   Objeto CRS
+
+![](DATA/Diagrama%20SF.png){fig-align="center"}
+
+### a. Objeto Dataframe
+
+El **Dataframe** representa la tabla de atributos del archivo *shapefile.*
+
+[**ST_SET_GEOMETRY**]{style="color:green;"}
+
+```{r}
+df <- st_set_geometry(poligonos, NULL)
+df
+```
+
+```{r}
+class(df)
+```
+
+### b. Objeto SFC
+
+El objeto SFC (*Simple Feature Column*) representa la geometría de un dato vectorial, el cual contiene las coordenadas de los vértices asi como su sistema de referencia (CRS).
+
+Se puede acceder a través de la funcion *st_geometry(poligonos)* o *poligonos\$geometry*.
+
+[**ST_GEOMETRY**]{style="color:green;"}
+
+```{r}
+geom <- st_geometry(poligonos)
+geom
+```
+
+```{r}
+class(geom)
+```
+
+La información del objeto SFC esta estructurado de la siguiente manera:
+
+![](DATA/Tabla%20geometrias.PNG){fig-align="center"}
+
+### c. Objeto SFG
+
+El objeto SFG (*Simple Feature Geometry*) representa la forma del tipo de geometria (puntos, lineas, poligonos) el cual esta formado por un conjunto de coordenadas.
+
+Por ejemplo, el segundo elemento del dato *poligono* es una geometría de forma cuadrada.
+
+```{r}
+geom[[2]]
+```
+
+```{r}
+class(geom[[2]])
+```
+
+```{r}
+plot(geom[[2]])
+```
+
+Las coordenadas del cuadrado son sus vértices que se encuentran ordenadas en una ***matriz*** en donde la primera columna es la coordenada X y la segunda la coordenada Y.
+
+```{r}
+geom[[2]][[1]]
+```
+
+```{r}
+class(geom[[2]][[1]])
+```
+
+### d. Objeto CRS
+
+El objeto CRS contiene el Sistema de Coordenadas de Referencia (CRS).
+
+[**ST_CRS**]{style="color:green;"}
+
+```{r}
+st_crs(geom)
+```

@@ -1,0 +1,316 @@
+---
+title: "Creación de objetos SF"
+---
+
+![](DATA/Diagrama%20SF.png){fig-align="center"}
+
+Según la figura superior para crear un objeto SF se realiza lo siguiente:
+
+(a) Convertir coordendas a un objetos SFG
+(b) Convertir el SFG a un objeto SFC
+(c) Asignar un CRS al objeto SFC
+(d) Crear un dataframe para los elementos del objeto SFC
+(e) Crear un objeto SF con el SFC y el dataframe
+
+Importación de librerias
+
+```{r, message=FALSE}
+library(sf)
+library(tidyverse) 
+```
+
+Importación de un polígono de referencia
+
+```{r}
+poligonos <- read_sf('DATA/Poligonos.shp')
+triangulo <- poligonos[1,]
+```
+
+```{r}
+ggplot() + 
+  geom_sf(data = triangulo)
+```
+
+Las coordenadas de sus vértices son:
+
+```{r}
+st_geometry(triangulo)[[1]][[1]]
+```
+
+## 1. Elemento Punto
+
+**a. Convertir coordendas a un objetos SFG**
+
+[**ST_POINT**]{style="color:green;"}
+
+```{r}
+# Coordenadas escogidas al azar
+p1 <- c(678000, 8471000)
+p2 <- c(679500, 8470500)
+p3 <- c(679000, 8472000)
+p4 <- c(677500, 8472000)
+p5 <- c(678000, 8473000)
+p6 <- c(679000, 8473000)
+p7 <- c(678500, 8472500)
+
+# Conversion a objetos SFG
+p1_sfg <- st_point(p1)
+p2_sfg <- st_point(p2)
+p3_sfg <- st_point(p3)
+p4_sfg <- st_point(p4)
+p5_sfg <- st_point(p5)
+p6_sfg <- st_point(p6)
+p7_sfg <- st_point(p7)
+
+p3_sfg
+```
+
+```{r}
+class(p3_sfg)
+```
+
+**b. Convertir el SFG a un objeto SFC**
+
+[**ST_SFC**]{style="color:green;"}
+
+```{r}
+ptos_sfc <- st_sfc(p1_sfg, p2_sfg, p3_sfg, p4_sfg, p5_sfg, p6_sfg, p7_sfg)
+ptos_sfc
+```
+
+```{r}
+class(ptos_sfc)
+```
+
+**c. Asignar un CRS al objeto SFC**
+
+[**ST_SET_CRS**]{style="color:green;"}
+
+```{r}
+ptos_sfc <- st_set_crs(ptos_sfc, "EPSG:32718")
+ptos_sfc
+```
+
+```{r}
+class(ptos_sfc)
+```
+
+**d. Crear un dataframe para los elementos del objeto SFC**
+
+```{r}
+ptos_df <- data.frame(Id = c(1, 2, 3, 4, 5, 6, 7),
+                      Objeto = c("Punto 1", "Punto 2", "Punto 3", "Punto 4",
+                                 "Punto 5", "Punto 6", "Punto 7"))
+ptos_df
+```
+
+```{r}
+class(ptos_df)
+```
+
+**e. Crear un objeto SF con el SFC y el dataframe**
+
+```{r}
+ptos_sf <- st_sf(ptos_df, ptos_sfc)
+ptos_sf
+```
+
+```{r}
+class(ptos_sf)
+```
+
+Gráfica
+
+```{r}
+ggplot() +
+  geom_sf(data = triangulo) +
+  geom_sf(data = ptos_sf, color = "red") +
+  geom_text(data = ptos_df,
+            aes(x = c(st_coordinates(ptos_sf)[,1]),
+                y = c(st_coordinates(ptos_sf)[,2])+80,
+                label = Objeto),
+            size = 2.5) +
+  theme(axis.title = element_blank())
+```
+
+## 2. Elemento Línea
+
+**a. Convertir coordendas a un objetos SFG**
+
+[**ST_LINE**]{style="color:green;"}
+
+```{r}
+# Coordenadas escogidas al azar
+p1 <- c(678000, 8471000)
+p2 <- c(679500, 8470500)
+p3 <- c(679000, 8472000)
+p4 <- c(677500, 8472000)
+p5 <- c(678000, 8473000)
+p6 <- c(679000, 8473000)
+p7 <- c(678500, 8472500)
+
+# Conversion a objetos SFG
+line1_sfg <- st_linestring(rbind(p1, p2, p3, p1))
+line2_sfg <- st_linestring(rbind(p4, p5, p6, p7))
+
+line1_sfg
+```
+
+```{r}
+class(line1_sfg)
+```
+
+**b. Convertir el SFG a un objeto SFC**
+
+[**ST_SFC**]{style="color:green;"}
+
+```{r}
+line_sfc <- st_sfc(line1_sfg, line2_sfg)
+line_sfc
+```
+
+```{r}
+class(line_sfc)
+```
+
+**c. Asignar un CRS al objeto SFC**
+
+[**ST_SET_CRS**]{style="color:green;"}
+
+```{r}
+line_sfc <- st_set_crs(line_sfc, "EPSG:32718")
+line_sfc
+```
+
+```{r}
+class(line_sfc)
+```
+
+**d. Crear un dataframe para los elementos del objeto SFC**
+
+```{r}
+line_df <- data.frame(Id = c(1, 2),
+                      Objeto = c("Linea 1", "Linea 2"))
+line_df
+```
+
+```{r}
+class(line_df)
+```
+
+**e. Crear un objeto SF con el SFC y el dataframe**
+
+```{r}
+line_sf <- st_sf(line_df, line_sfc)
+line_sf
+```
+
+```{r}
+class(line_sf)
+```
+
+Gráfica
+
+```{r}
+ggplot() +
+  geom_sf(data = triangulo) +
+  geom_sf(data = line_sf, color = "red") +
+  geom_text(data = line_df,
+            aes(x = st_coordinates(st_centroid(line_sf))[,1],
+                y = st_coordinates(st_centroid(line_sf))[,2],
+                label = Objeto),
+            size = 3) +
+  theme(axis.title = element_blank())
+```
+
+## 3. Elemento Polígono
+
+**a. Convertir coordendas a un objetos SFG**
+
+[**ST_LINE**]{style="color:green;"}
+
+```{r}
+# Coordenadas escogidas al azar
+p1 <- c(678000, 8471000)
+p2 <- c(679500, 8470500)
+p3 <- c(679000, 8472000)
+p4 <- c(677500, 8472000)
+p5 <- c(678000, 8473000)
+p6 <- c(679000, 8473000)
+p7 <- c(678500, 8472500)
+
+# Conversion a objetos SFG
+poly1 <- st_polygon(list(rbind(p1, p2, p3, p1)))
+poly2 <- st_polygon(list(rbind(p4, p5, p6, p7, p4)))
+
+poly_sfg <- st_multipolygon(list(poly1, poly2))
+
+poly_sfg
+```
+
+```{r}
+class(poly_sfg)
+```
+
+**b. Convertir el SFG a un objeto SFC**
+
+[**ST_SFC**]{style="color:green;"}
+
+```{r}
+poly_sfc <- st_sfc(poly1, poly2)
+poly_sfc
+```
+
+```{r}
+class(poly_sfc)
+```
+
+**c. Asignar un CRS al objeto SFC**
+
+[**ST_SET_CRS**]{style="color:green;"}
+
+```{r}
+poly_sfc <- st_set_crs(poly_sfc, "EPSG:32718")
+poly_sfc
+```
+
+```{r}
+class(poly_sfc)
+```
+
+**d. Crear un dataframe para los elementos del objeto SFC**
+
+```{r}
+poly_df <- data.frame(Id = c(1, 2),
+                      Objeto = c("Poligono 1", "Poligono 2"))
+poly_df
+```
+
+```{r}
+class(poly_df)
+```
+
+**e. Crear un objeto SF con el SFC y el dataframe**
+
+```{r}
+poly_sf <- st_sf(poly_df, poly_sfc)
+poly_sf
+```
+
+```{r}
+class(poly_df)
+```
+
+Gráfica
+
+```{r}
+ggplot() +
+  geom_sf(data = triangulo) +
+  geom_sf(data = poly_sf, color = "red") +
+  geom_text(data = poly_df,
+            aes(x = st_coordinates(st_centroid(poly_sf))[,1],
+                y = st_coordinates(st_centroid(poly_sf))[,2],
+                label = Objeto),
+            size = 3) +
+  theme(axis.title = element_blank())
+```
